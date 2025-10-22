@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion as Motion} from "framer-motion";
+import axios from "axios";
 
 export default function DiabetesPredictor({ setPage }) {
   const [form, setForm] = useState({
@@ -10,21 +10,38 @@ export default function DiabetesPredictor({ setPage }) {
     family_history: "",
   });
   const [result, setResult] = useState(null);
+  const [prob, setProb] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setResult(null);
+    setProb(null);
 
-    // Simulate AI processing delay
-    setTimeout(() => {
+    try {
+      const res = await axios.post("http://localhost:8000/predict-diabetes", {
+        age: parseFloat(form.age),
+        bmi: parseFloat(form.bmi),
+        glucose: parseFloat(form.glucose),
+        insulin: parseFloat(form.insulin),
+        family_history: parseInt(form.family_history) || 0,
+      });
+      if (res.data.error) {
+        setResult("Model not ready on server");
+      } else {
+        setResult(res.data.prediction);
+        setProb((res.data.probability * 100).toFixed(1));
+      }
+    } catch (err) {
+      console.error(err);
+      setResult("Error contacting server");
+    } finally {
       setLoading(false);
-      setResult("High Risk"); // placeholder
-    }, 1500);
+    }
   };
 
   return (
@@ -42,7 +59,7 @@ export default function DiabetesPredictor({ setPage }) {
       </h2>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
-        {["age", "bmi", "glucose", "insulin", "family_history"].map((f) => (
+        {["age", "bmi", "glucose", "insulin"].map((f) => (
           <input
             key={f}
             type="number"
@@ -54,11 +71,22 @@ export default function DiabetesPredictor({ setPage }) {
             required
           />
         ))}
+
+        <label className="text-sm text-gray-500">Family history (1 = yes, 0 = no)</label>
+        <input
+          type="number"
+          name="family_history"
+          value={form.family_history}
+          onChange={handleChange}
+          className="w-full p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-400 focus:outline-none shadow-sm transition"
+        />
+
         <button
           type="submit"
+          disabled={loading}
           className="w-full py-4 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 hover:scale-105 transition transform shadow-lg"
         >
-          Predict
+          {loading ? "Predicting..." : "Predict"}
         </button>
       </form>
 
@@ -69,14 +97,10 @@ export default function DiabetesPredictor({ setPage }) {
       )}
 
       {result && (
-        <Motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="mt-6 text-center text-xl font-semibold text-red-600"
-        >
-          {result}
-        </Motion.div>
+        <div className="mt-6 text-center">
+          <div className="text-xl font-semibold">{result}</div>
+          {prob && <div className="text-sm text-gray-600 mt-1">Confidence: {prob}%</div>}
+        </div>
       )}
     </div>
   );

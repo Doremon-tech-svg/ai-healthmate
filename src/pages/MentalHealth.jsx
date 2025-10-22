@@ -34,21 +34,30 @@ export default function MentalHealth({ setPage }) {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setResponse("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setResponse("");
 
-    // Example basic logic (you can replace with AI)
-    setTimeout(() => {
-      setLoading(false);
-      const moodMsg =
-        formData.mood === "bad" || formData.energy === "drained"
-          ? "You seem tired. Take it easy today ❤️"
-          : "You seem okay. Keep up the positive vibes!";
-      setResponse(moodMsg);
-    }, 1200);
-  };
+  try {
+    const res = await fetch("http://localhost:8000/analyze-mental-health", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
+    if (data.message) {
+      setResponse(data.message);
+    } else {
+      setResponse("No response from server");
+    }
+  } catch (err) {
+    console.error(err);
+    setResponse("Error contacting server");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="relative max-w-3xl mx-auto bg-white backdrop-blur-md bg-opacity-80 p-8 rounded-3xl shadow-2xl mt-6">
