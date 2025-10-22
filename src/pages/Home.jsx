@@ -210,20 +210,20 @@ export default function Home({ setPage }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 max-w-6xl mx-auto px-6">
           {[
             {
-              name: "Aarav Singh",
-              role: "Machine Learning Engineer",
+              name: "Divyank Richhariya",
+              role: "AI Research & Integration",
             },
             {
-              name: "Riya Patel",
+              name: "Divya Tripathi",
               role: "Frontend Developer",
             },
             {
-              name: "Devansh Sharma",
-              role: "Data Scientist",
+              name: "Akansh Dwivedi",
+              role: "Machine Learning Engineer",
             },
             {
-              name: "Ishita Mehra",
-              role: "AI Research & Integration",
+              name: "Aman Yadav",
+              role: "Yunhi hun bas",
             },
           ].map((member) => (
             <Motion.div
