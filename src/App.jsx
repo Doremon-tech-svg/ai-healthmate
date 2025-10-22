@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion as Motion, AnimatePresence } from "framer-motion";
 import Chatbot from "./components/Chatbot";
+import MentalHealth from "./pages/MentalHealth";
 
 // Components
 function Navbar({ setPage }) {
@@ -165,41 +166,41 @@ function DiabetesPredictor() {
   );
 }
 
-function MentalHealth() {
-  const [text, setText] = useState("");
-  const [response, setResponse] = useState("");
+// function MentalHealth() {
+//   const [text, setText] = useState("");
+//   const [response, setResponse] = useState("");
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setResponse(
-      "You seem okay. Keep up the positive vibes!" // placeholder
-    );
-  };
+//   const handleSubmit = (e) => {
+//     e.preventDefault();
+//     setResponse(
+//       "You seem okay. Keep up the positive vibes!" // placeholder
+//     );
+//   };
 
-  return (
-    <div className="max-w-lg mx-auto bg-white backdrop-blur-md bg-opacity-80 p-8 rounded-3xl shadow-2xl">
-      <h2 className="text-3xl font-bold text-green-600 mb-6 text-center">
-        Mental Health Companion
-      </h2>
-      <form className="space-y-4" onSubmit={handleSubmit}>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="How are you feeling today?"
-          rows="5"
-          className="w-full p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-400 focus:outline-none shadow-sm transition"
-          required
-        />
-        <button className="w-full py-4 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 hover:scale-105 transition transform shadow-lg">
-          Analyze
-        </button>
-      </form>
-      {response && (
-        <div className="mt-6 text-center italic text-gray-700">{response}</div>
-      )}
-    </div>
-  );
-}
+//   return (
+//     <div className="max-w-lg mx-auto bg-white backdrop-blur-md bg-opacity-80 p-8 rounded-3xl shadow-2xl">
+//       <h2 className="text-3xl font-bold text-green-600 mb-6 text-center">
+//         Mental Health Companion
+//       </h2>
+//       <form className="space-y-4" onSubmit={handleSubmit}>
+//         <textarea
+//           value={text}
+//           onChange={(e) => setText(e.target.value)}
+//           placeholder="How are you feeling today?"
+//           rows="5"
+//           className="w-full p-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-green-400 focus:outline-none shadow-sm transition"
+//           required
+//         />
+//         <button className="w-full py-4 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 hover:scale-105 transition transform shadow-lg">
+//           Analyze
+//         </button>
+//       </form>
+//       {response && (
+//         <div className="mt-6 text-center italic text-gray-700">{response}</div>
+//       )}
+//     </div>
+//   );
+// }
 
 export default function App() {
   const [page, setPage] = useState("home");
