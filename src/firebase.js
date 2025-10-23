@@ -3,6 +3,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 // ⚠️ Vite uses import.meta.env.VITE_ — not REACT_APP_
 const firebaseConfig = {
@@ -20,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
+export const storage = getStorage(app);
 // ✅ Add Google Auth Provider export
 export const googleProvider = new GoogleAuthProvider();
 
