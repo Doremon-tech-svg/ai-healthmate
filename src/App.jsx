@@ -8,6 +8,10 @@ import Footer from "./components/Footer";
 import Card from "./components/Card";
 import "./styles/Home.css"; // External stylesheet for gradients, animations, etc.
 import Home from "./pages/Home"
+import { AuthProvider } from "./contexts/AuthContext";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Dashboard from "./pages/Dashboard";
 
 /**
  * App.jsx — improved version
@@ -60,36 +64,91 @@ function ComponentTransition({ children, variant = "center", keyName }) {
 export default function App() {
   const [page, setPage] = useState("home");
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-white to-green-50">
-      <Navbar setPage={setPage} />
+return (
+    <AuthProvider>
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-blue-50 via-white to-green-50">
+        <Navbar setPage={setPage} />
 
-      <main className="flex-grow container mx-auto px-4 py-10">
-        {/* Use mode="wait" so exit completes before next enters (replaces exitBeforeEnter) */}
-        <AnimatePresence mode="wait">
-          {page === "home" && (
-            <ComponentTransition keyName="home" variant="up">
-              <Home setPage={setPage} />
-            </ComponentTransition>
-          )}
+        <main className="flex-grow container mx-auto px-4 py-10">
+          <AnimatePresence mode="wait">
+            {page === "home" && (
+              <Motion.div
+                key="home"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={pageTransition}
+              >
+                <Home setPage={setPage} />
+              </Motion.div>
+            )}
 
-          {page === "diabetes" && (
-            <ComponentTransition keyName="diabetes" variant="right">
-              <DiabetesPredictor setPage={setPage} />
-            </ComponentTransition>
-          )}
+            {page === "login" && (
+              <Motion.div key="login" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <Login setPage={setPage} />
+              </Motion.div>
+            )}
 
-          {page === "mental" && (
-            <ComponentTransition keyName="mental" variant="down">
-              <MentalHealth setPage={setPage} />
-            </ComponentTransition>
-          )}
-        </AnimatePresence>
-      </main>
+            {page === "signup" && (
+              <Motion.div key="signup" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <Signup setPage={setPage} />
+              </Motion.div>
+            )}
 
-      <Chatbot />
 
-      <Footer />
-    </div>
+            {page === "diabetes" && (
+              <Motion.div
+                key="diabetes"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -50 }}
+                transition={pageTransition}
+              >
+                <DiabetesPredictor setPage={setPage} />
+              </Motion.div>
+            )}
+
+            {page === "mental" && (
+              <Motion.div
+                key="mental"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={pageTransition}
+              >
+                <MentalHealth setPage={setPage} />
+              </Motion.div>
+            )}
+
+            {page === "dashboard" && (
+              <Motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={pageTransition}
+              >
+                <Dashboard />
+              </Motion.div>
+            )}
+
+            {page === "profile" && (
+              <Motion.div
+                key="profile"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={pageTransition}
+              >
+                <Profile />
+              </Motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+
+        <Chatbot />
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }

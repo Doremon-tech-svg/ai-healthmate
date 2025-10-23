@@ -137,3 +137,65 @@ section {
     transform: translateY(0);
   }
 }
+.hero-section {
+  position: relative;
+  border-radius: 2rem;
+  overflow: hidden;
+  min-height: 100vh;
+  color: white;
+}
+
+.animate-pulse {
+  animation: pulseGlow 5s ease-in-out infinite alternate;
+}
+
+@keyframes pulseGlow {
+  0% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(1.2);
+  }
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 800;
+  text-align: center;
+  color: #1f2937;
+  margin-bottom: 0.75rem;
+}
+
+.section-subtitle {
+  font-size: 1.1rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+section {
+  animation: fadeUp 0.8s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-card {
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
