@@ -9,26 +9,40 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import { db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
-import { useAuth } from "../contexts/AuthContext";
 
+import { db } from "../firebase";
+import {
+  doc,
+  getDoc,
+  query,
+  where,
+  orderBy,
+  collection,
+  onSnapshot,
+} from "firebase/firestore";
+
+import { useAuth } from "../contexts/AuthContext";
 import InsightsCard from "../components/InsightsCard";
+import DiabetesDetailModal from "../components/DiabetesDetailModal";
 
 export default function Dashboard({ setPage }) {
   const { user } = useAuth();
   const [userData, setUserData] = useState(null);
+  const [diabetesHistory, setDiabetesHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Mock data
+  // ✅ Correct modal state placement
+  const [showModal, setShowModal] = useState(false);
+
+
+  // Your original mock stress data
   const stressData = [
     { date: "2025-10-01", stress: 30 },
     { date: "2025-10-10", stress: 55 },
     { date: "2025-10-17", stress: 48 },
     { date: "2025-10-23", stress: 42 },
   ];
-  const stressScore = 42;
-  const diabetesRisk = 27;
+  const stressScore = 0.42;
 
   useEffect(() => {
     if (!user) {
@@ -36,37 +50,68 @@ export default function Dashboard({ setPage }) {
       return;
     }
 
-    const fetchUserData = async () => {
+    // Fetch user profile
+    const fetchProfile = async () => {
       try {
-        const refDoc = doc(db, "users", user.uid);
-        const snap = await getDoc(refDoc);
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
         if (snap.exists()) {
           setUserData(snap.data());
         } else {
-          // User exists but has not filled extended form
           setUserData({ name: user.displayName || user.email });
         }
       } catch (err) {
-        console.error("Error fetching user data:", err);
-        alert("Error fetching dashboard data.");
-      } finally {
-        setLoading(false);
+        console.error("User data error:", err);
+        alert("Error fetching dashboard data");
       }
     };
 
-    fetchUserData();
+    // Subscribe to diabetes test history
+    const q = query(
+      collection(db, "diabetesResults"),
+      where("uid", "==", user.uid),
+      orderBy("timestamp", "desc")
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        setDiabetesHistory(data);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("History error:", err);
+      }
+    );
+
+    fetchProfile();
+    return () => unsub();
   }, [user, setPage]);
 
   if (!user || loading) {
     return (
-      <div className="flex justify-center items-center h-screen text-gray-600 text-xl">
-        Loading...
+      <div className="flex items-center justify-center h-screen text-xl text-gray-600">
+        Loading dashboard…
       </div>
     );
   }
 
+  const latestRisk = diabetesHistory[0]?.probability ?? null;
+
+  const riskColor = (p) => {
+    if (p >= 70) return "bg-red-500 text-white";
+    if (p >= 40) return "bg-yellow-400 text-black";
+    return "bg-green-500 text-white";
+  };
+
   return (
     <div className="container mx-auto py-16 px-6 space-y-16">
+      
       {/* Welcome Section */}
       <section className="text-center">
         <Motion.h1
@@ -74,18 +119,18 @@ export default function Dashboard({ setPage }) {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-bold text-gray-800 mb-4"
         >
-          Welcome back, {userData.name || "HealthMate User"} 👋
+          Welcome back, {userData?.name || "HealthMate User"} 👋
         </Motion.h1>
         <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-          Here’s your weekly health snapshot — track your stress trends, diabetes prediction, 
-          and personalized AI insights.
+          Here’s your weekly health snapshot — stress trends, diabetes risk,
+          and personalized AI insights to support your wellness journey.
         </p>
       </section>
 
-      {/* Stress Trend Chart */}
+      {/* Stress Chart */}
       <section className="bg-white p-8 rounded-3xl shadow-lg">
         <h2 className="text-2xl font-semibold text-blue-700 mb-6">
-          🧘 Stress Trend (Last 7 Days)
+          🧘 Weekly Stress Trend
         </h2>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={stressData}>
@@ -104,30 +149,90 @@ export default function Dashboard({ setPage }) {
         </ResponsiveContainer>
       </section>
 
-      {/* Health Insights Section */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      {/* Insight Cards */}
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-10">
         <InsightsCard
           title="🩸 Diabetes Risk Analysis"
-          value={(diabetesRisk * 100).toFixed(1) + "%"}
-          desc="Based on your latest inputs, your current diabetes risk level is moderate. Keep up with healthy meals and physical activity."
+          value={
+            latestRisk !== null
+              ? latestRisk.toFixed(1) + "%"
+              : "No tests yet"
+          }
+          desc={
+            latestRisk !== null
+              ? "Based on your recent diabetes prediction test."
+              : "Go run a diabetes check to get your first result."
+          }
           color="blue"
+          onClick={() => setShowModal(true)}
         />
+
+        {/* ✅ Move modal right after card inside section */}
+        <DiabetesDetailModal
+          open={showModal}
+          onClose={() => setShowModal(false)}
+          history={diabetesHistory}
+        />
+
         <InsightsCard
           title="🧠 Mental Health Insights"
           value={(stressScore * 100).toFixed(1) + "%"}
-          desc="Stress levels show improvement this week! AI suggests continuing relaxation routines and consistent sleep schedules."
+          desc="Your stress trend suggests moderate emotional strain. Continue mindfulness and healthy habits."
           color="green"
         />
       </section>
 
-      {/* Holistic AI Summary */}
+
+      {/* Diabetes Test History */}
+      <section className="bg-white p-8 rounded-3xl shadow-lg">
+        <h2 className="text-2xl font-semibold text-blue-700 mb-6">
+          📂 Diabetes Test History
+        </h2>
+
+        {diabetesHistory.length === 0 ? (
+          <p className="text-center text-gray-600">
+            No diabetes test history yet. Take a test on the home page.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {diabetesHistory.map((r) => (
+              <div
+                key={r.id}
+                className="bg-gray-50 p-4 rounded-xl shadow-sm border"
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <div className="font-semibold text-lg">{r.prediction}</div>
+                    <div className="text-xs text-gray-500">
+                      {r.timestamp?.toDate?.().toLocaleString?.()}
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-sm font-bold ${riskColor(r.probability)}`}>
+                    {r.probability.toFixed(1)}%
+                  </div>
+                </div>
+
+                {/* Key features preview */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-sm">
+                  <div>Glucose: {r.inputs.glucose}</div>
+                  <div>Insulin: {r.inputs.insulin}</div>
+                  <div>Skinfold: {r.inputs.skin_thickness}</div>
+                  <div>Pedigree: {r.inputs.pedigree}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Closing Hero */}
       <section className="text-center bg-gradient-to-r from-blue-500 to-purple-500 text-white py-16 rounded-3xl shadow-lg">
-        <h2 className="text-3xl font-bold mb-4">Holistic AI Health Summary</h2>
+        <h2 className="text-3xl font-bold mb-4">
+          Holistic AI Wellness Summary
+        </h2>
         <p className="max-w-3xl mx-auto text-lg text-white/90">
-          Your physical and mental health data are continuously analyzed by AI 
-          to create a personalized wellness strategy.
-          <br />
-          <span className="font-semibold">“Because true health is both mind and body.”</span>
+          AI is monitoring your metabolic and emotional markers to guide you
+          toward healthier living, every single day.
         </p>
       </section>
     </div>
